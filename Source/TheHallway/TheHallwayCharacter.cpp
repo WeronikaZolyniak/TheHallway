@@ -10,6 +10,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "Kismet/GameplayStatics.h"
+#include "WalkSoundsSettings.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -34,6 +36,23 @@ ATheHallwayCharacter::ATheHallwayCharacter()
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+
+	StepSoundLinetraceStart = CreateDefaultSubobject<USceneComponent>(TEXT("StepSoundLinetraceStart"));
+	StepSoundLinetraceStart->SetupAttachment(RootComponent);
+
+}
+
+void ATheHallwayCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	//UE_LOG(LogTemp, Warning, TEXT("%i"), IsMoving);
+}
+
+void ATheHallwayCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
 
 }
 
@@ -64,6 +83,7 @@ void ATheHallwayCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATheHallwayCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ATheHallwayCharacter::StopMoving);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATheHallwayCharacter::Look);
@@ -85,7 +105,20 @@ void ATheHallwayCharacter::Move(const FInputActionValue& Value)
 		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
+		IsMoving = true;
+
+		if (StepSoundFinished)
+		{
+			GetWorld()->GetTimerManager().SetTimer(WalkSoundTimerHandle, this, &ATheHallwayCharacter::PlayWalkSound, StepTimeInSec, false);
+			StepSoundFinished = false;
+		}
+		
 	}
+}
+
+void ATheHallwayCharacter::StopMoving(const FInputActionValue& Value)
+{
+	IsMoving = false;
 }
 
 void ATheHallwayCharacter::Look(const FInputActionValue& Value)
@@ -99,4 +132,55 @@ void ATheHallwayCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ATheHallwayCharacter::PlayWalkSound()
+{
+	//check if moving
+	if (!IsMoving)
+	{
+		StepSoundFinished = true;
+		return;
+	}
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.bReturnPhysicalMaterial = true;
+
+	bool FloorDetected = GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		StepSoundLinetraceStart->GetComponentLocation(),
+		StepSoundLinetraceStart->GetComponentLocation() + FVector(0,0,-2000),
+		ECollisionChannel::ECC_Visibility, Params);
+
+
+	//DrawDebugLine(GetWorld(), StepSoundLinetraceStart->GetComponentLocation(), StepSoundLinetraceStart->GetComponentLocation() + FVector(0, 0, -100), FColor::Green, true);
+
+	if (FloorDetected)
+	{
+		TWeakObjectPtr <UPhysicalMaterial> HitMaterial = Hit.PhysMaterial;
+		FName MaterialName = HitMaterial->GetFName();
+
+		const UWalkSoundsSettings* WalkSoundsSetting = GetDefault<UWalkSoundsSettings>();
+		if (WalkSoundsSetting)
+		{
+			auto Map = WalkSoundsSetting->PhysicalMatNameAndSound;
+			for (auto NamesAndSounds : Map)
+			{
+				FName MapMaterialName = FName(*NamesAndSounds.Key);
+				if (MapMaterialName == MaterialName)
+				{
+					USoundWave* Sound = Cast<USoundWave>(NamesAndSounds.Value.ResolveObject());
+					if (!Sound) return;
+					UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound, GetActorLocation());
+				}
+			}
+			
+		}
+			
+		
+	}
+
+	
+	StepSoundFinished = true;
 }

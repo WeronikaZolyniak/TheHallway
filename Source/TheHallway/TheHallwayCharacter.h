@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Engine/DataTable.h"
 #include "TheHallwayCharacter.generated.h"
 
 class UInputComponent;
@@ -44,16 +45,41 @@ class ATheHallwayCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+
+	UPROPERTY(EditDefaultsOnly)
+	float StepTimeInSec;
+	bool StepSoundFinished = true;
+
+
+	FTimerHandle WalkSoundTimerHandle;
+
+	bool IsMoving = false;
+
+	UPROPERTY(EditAnywhere)
+	USceneComponent* StepSoundLinetraceStart;
+
+	//UPROPERTY(EditAnywhere)
+	//TSubclassOf<class UUserDefinedStruct> DataTableRowClass;
 	
 public:
 	ATheHallwayCharacter();
+
+	// Called every frame
+	virtual void Tick(float DeltaSeconds) override;
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
+	void StopMoving(const FInputActionValue& Value);
+
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	void PlayWalkSound();
 
 protected:
 	// APawn interface
