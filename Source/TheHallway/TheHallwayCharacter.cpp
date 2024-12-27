@@ -12,6 +12,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "WalkSoundsSettings.h"
+#include "FootstepSettings.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -150,7 +151,7 @@ void ATheHallwayCharacter::PlayWalkSound()
 	bool FloorDetected = GetWorld()->LineTraceSingleByChannel(
 		Hit,
 		StepSoundLinetraceStart->GetComponentLocation(),
-		StepSoundLinetraceStart->GetComponentLocation() + FVector(0,0,-2000),
+		StepSoundLinetraceStart->GetComponentLocation() + FVector(0,0,-100),
 		ECollisionChannel::ECC_Visibility, Params);
 
 
@@ -159,25 +160,29 @@ void ATheHallwayCharacter::PlayWalkSound()
 	if (FloorDetected)
 	{
 		TWeakObjectPtr <UPhysicalMaterial> HitMaterial = Hit.PhysMaterial;
-		FName MaterialName = HitMaterial->GetFName();
+		UPhysicalMaterial* HitMaterialPointer = Cast<UPhysicalMaterial>(HitMaterial);
 
 		const UWalkSoundsSettings* WalkSoundsSetting = GetDefault<UWalkSoundsSettings>();
-		if (WalkSoundsSetting)
+		check(WalkSoundsSetting); //unreal's assert
+
+		FSoftObjectPath path = WalkSoundsSetting->FootstepMapping;
+		/**static UObject* FootstepsSettingObj = path.TryLoad();
+		check(FootstepsSettingObj);
+		TSubclassOf<UObject> clas = FootstepsSettingObj->GetClass();
+		FName ClassName = FootstepsSettingObj->GetClass()->GetFName();*/
+		
+		UFootstepSettings* FootstepSettings = (UFootstepSettings*)path.TryLoad();
+		//UFootstepSettings* FootstepSettings = Cast<UFootstepSettings>(path.TryLoad());
+		check(FootstepSettings);
+
+		//TMap<UPhysicalMaterial*, USoundBase*> FootstepMapping = FootstepSettings->FootstepMapping;
+
+		USoundBase* FootstepSound = *FootstepSettings->FootstepMapping.Find(HitMaterialPointer);
+
+		if (FootstepSound)
 		{
-			auto Map = WalkSoundsSetting->PhysicalMatNameAndSound;
-			for (auto NamesAndSounds : Map)
-			{
-				FName MapMaterialName = FName(*NamesAndSounds.Key);
-				if (MapMaterialName == MaterialName)
-				{
-					USoundWave* Sound = Cast<USoundWave>(NamesAndSounds.Value.ResolveObject());
-					if (!Sound) return;
-					UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound, GetActorLocation());
-				}
-			}
-			
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), FootstepSound, StepSoundLinetraceStart->GetComponentLocation());
 		}
-			
 		
 	}
 
