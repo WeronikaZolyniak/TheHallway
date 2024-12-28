@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "Engine/DataTable.h"
+#include "SplineActor.h"
 #include "TheHallwayCharacter.generated.h"
 
 class UInputComponent;
@@ -47,9 +48,8 @@ class ATheHallwayCharacter : public ACharacter
 	class UInputAction* LookAction;
 
 	UPROPERTY(EditDefaultsOnly)
-	float StepTimeInSec;
-	bool StepSoundFinished = true;
-
+	float DistanceBetweenFootstepSoundsInCm;
+	float DistanceSinceFootstepSound = 0;
 
 	FTimerHandle WalkSoundTimerHandle;
 
@@ -57,6 +57,9 @@ class ATheHallwayCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere)
 	USceneComponent* StepSoundLinetraceStart;
+
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<ASplineActor> SplineActor;
 
 	//UPROPERTY(EditAnywhere)
 	//TSubclassOf<class UUserDefinedStruct> DataTableRowClass;
@@ -80,6 +83,8 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void PlayWalkSound();
+
+	float GetDistanceAlongSpline();
 
 protected:
 	// APawn interface
