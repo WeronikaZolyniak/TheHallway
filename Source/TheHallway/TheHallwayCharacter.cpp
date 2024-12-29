@@ -45,8 +45,7 @@ ATheHallwayCharacter::ATheHallwayCharacter()
 void ATheHallwayCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	//UE_LOG(LogTemp, Warning, TEXT("%i"), IsMoving);
+	GetDistanceAlongSpline();
 }
 
 void ATheHallwayCharacter::BeginPlay()
@@ -107,10 +106,16 @@ void ATheHallwayCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
 		IsMoving = true;
 
-		if (StepSoundFinished)
+		float LocationDifference = MovementVector.Length();
+
+		if (DistanceSinceFootstepSound + LocationDifference >= DistanceBetweenFootstepSoundsInCm)
 		{
-			GetWorld()->GetTimerManager().SetTimer(WalkSoundTimerHandle, this, &ATheHallwayCharacter::PlayWalkSound, StepTimeInSec, false);
-			StepSoundFinished = false;
+			DistanceSinceFootstepSound = 0;
+			PlayWalkSound();
+		}
+		else
+		{
+			DistanceSinceFootstepSound += LocationDifference;
 		}
 		
 	}
@@ -136,6 +141,7 @@ void ATheHallwayCharacter::Look(const FInputActionValue& Value)
 
 void ATheHallwayCharacter::PlayWalkSound()
 {
+	UE_LOG(LogTemp, Error, TEXT("Sound"));
 	//check if moving
 	if (!IsMoving || !FootstepSettings)
 	{
@@ -167,7 +173,23 @@ void ATheHallwayCharacter::PlayWalkSound()
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), *FootstepSound, StepSoundLinetraceStart->GetComponentLocation());
 		}
 		
-	}
-	
-	StepSoundFinished = true;
+	}*/
+}
+
+//percents: from 0 to 1
+float ATheHallwayCharacter::GetDistanceAlongSpline()
+{
+	if (!SplineActor) return -1;
+
+	USplineComponent* Spline = SplineActor->Spline;
+
+	float SplineLength = Spline->GetSplineLength();
+
+	float ClosestInputKey = Spline->FindInputKeyClosestToWorldLocation(GetActorLocation());
+	float DistanceAlongSpline = Spline->GetDistanceAlongSplineAtSplineInputKey(ClosestInputKey);
+
+
+	float PercentageAlongSpline = DistanceAlongSpline / SplineLength;
+	UE_LOG(LogTemp, Warning, TEXT("%f"), PercentageAlongSpline);
+	return PercentageAlongSpline;
 }
