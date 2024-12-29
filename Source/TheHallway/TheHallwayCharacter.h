@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "Engine/DataTable.h"
+#include "FootstepSettings.h"
 #include "SplineActor.h"
 #include "TheHallwayCharacter.generated.h"
 
@@ -18,7 +19,7 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-UCLASS(config=Game)
+UCLASS()
 class ATheHallwayCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -54,6 +55,7 @@ class ATheHallwayCharacter : public ACharacter
 	FTimerHandle WalkSoundTimerHandle;
 
 	bool IsMoving = false;
+	bool StepSoundFinished = false;
 
 	UPROPERTY(EditAnywhere)
 	USceneComponent* StepSoundLinetraceStart;
@@ -61,8 +63,8 @@ class ATheHallwayCharacter : public ACharacter
 	//UPROPERTY(EditAnywhere)
 	//TSoftObjectPtr<ASplineActor> SplineActor;
 
-	//UPROPERTY(EditAnywhere)
-	//TSubclassOf<class UUserDefinedStruct> DataTableRowClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UFootstepSettings> FootstepSettings;
 	
 public:
 	ATheHallwayCharacter();
