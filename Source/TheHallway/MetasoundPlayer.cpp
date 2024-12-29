@@ -28,7 +28,7 @@ void AMetasoundPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SplineValue = Cast<ATheHallwayCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))->GetDistanceAlongSpline(Spline);
-	UE_LOG(LogTemp, Error, TEXT("%f"), SplineValue);
+	//UE_LOG(LogTemp, Error, TEXT("%f"), SplineValue);
 
 	Metasound->SetFloatParameter(FName("Pitch"), SplineValue * 3);
 }
