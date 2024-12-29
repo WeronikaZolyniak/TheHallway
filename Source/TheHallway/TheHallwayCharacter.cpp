@@ -11,7 +11,6 @@
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
 #include "Kismet/GameplayStatics.h"
-#include "WalkSoundsSettings.h"
 #include "FootstepSettings.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -138,7 +137,7 @@ void ATheHallwayCharacter::Look(const FInputActionValue& Value)
 void ATheHallwayCharacter::PlayWalkSound()
 {
 	//check if moving
-	if (!IsMoving)
+	if (!IsMoving || !FootstepSettings)
 	{
 		StepSoundFinished = true;
 		return;
@@ -159,33 +158,16 @@ void ATheHallwayCharacter::PlayWalkSound()
 
 	if (FloorDetected)
 	{
-		TWeakObjectPtr <UPhysicalMaterial> HitMaterial = Hit.PhysMaterial;
-		UPhysicalMaterial* HitMaterialPointer = Cast<UPhysicalMaterial>(HitMaterial);
+		UPhysicalMaterial* HitMaterialPointer = Hit.PhysMaterial.Get();
 
-		const UWalkSoundsSettings* WalkSoundsSetting = GetDefault<UWalkSoundsSettings>();
-		check(WalkSoundsSetting); //unreal's assert
+		USoundBase** FootstepSound = FootstepSettings->FootstepMapping.Find(HitMaterialPointer);
 
-		FSoftObjectPath path = WalkSoundsSetting->FootstepMapping;
-		/**static UObject* FootstepsSettingObj = path.TryLoad();
-		check(FootstepsSettingObj);
-		TSubclassOf<UObject> clas = FootstepsSettingObj->GetClass();
-		FName ClassName = FootstepsSettingObj->GetClass()->GetFName();*/
-		
-		UFootstepSettings* FootstepSettings = (UFootstepSettings*)path.TryLoad();
-		//UFootstepSettings* FootstepSettings = Cast<UFootstepSettings>(path.TryLoad());
-		check(FootstepSettings);
-
-		//TMap<UPhysicalMaterial*, USoundBase*> FootstepMapping = FootstepSettings->FootstepMapping;
-
-		USoundBase* FootstepSound = *FootstepSettings->FootstepMapping.Find(HitMaterialPointer);
-
-		if (FootstepSound)
+		if (FootstepSound && *FootstepSound)
 		{
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), FootstepSound, StepSoundLinetraceStart->GetComponentLocation());
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), *FootstepSound, StepSoundLinetraceStart->GetComponentLocation());
 		}
 		
 	}
-
 	
 	StepSoundFinished = true;
 }
