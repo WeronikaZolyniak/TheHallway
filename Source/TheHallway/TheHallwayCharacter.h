@@ -55,6 +55,7 @@ class ATheHallwayCharacter : public ACharacter
 	FTimerHandle WalkSoundTimerHandle;
 
 	bool IsMoving = false;
+	bool StepSoundFinished = false;
 
 	UPROPERTY(EditAnywhere)
 	USceneComponent* StepSoundLinetraceStart;

@@ -172,8 +172,7 @@ void ATheHallwayCharacter::PlayWalkSound()
 		{
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), *FootstepSound, StepSoundLinetraceStart->GetComponentLocation());
 		}
-		
-	}*/
+	}
 }
 
 //percents: from 0 to 1
