@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/AudioComponent.h"
+#include "SplineActor.h"
 #include "MetasoundPlayer.generated.h"
 
 UCLASS()
@@ -26,4 +27,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UAudioComponent* Metasound;
+
+	UPROPERTY(EditAnywhere)
+	ASplineActor* Spline;
+
+	float SplineValue;
 };

@@ -58,8 +58,8 @@ class ATheHallwayCharacter : public ACharacter
 	UPROPERTY(EditAnywhere)
 	USceneComponent* StepSoundLinetraceStart;
 
-	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<ASplineActor> SplineActor;
+	//UPROPERTY(EditAnywhere)
+	//TSoftObjectPtr<ASplineActor> SplineActor;
 
 	//UPROPERTY(EditAnywhere)
 	//TSubclassOf<class UUserDefinedStruct> DataTableRowClass;
@@ -84,7 +84,9 @@ protected:
 
 	void PlayWalkSound();
 
-	float GetDistanceAlongSpline();
+public:
+
+	float GetDistanceAlongSpline(TSoftObjectPtr<ASplineActor> SplineActor);
 
 protected:
 	// APawn interface

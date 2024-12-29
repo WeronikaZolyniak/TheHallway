@@ -46,7 +46,7 @@ ATheHallwayCharacter::ATheHallwayCharacter()
 void ATheHallwayCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	GetDistanceAlongSpline();
+	//GetDistanceAlongSpline();
 }
 
 void ATheHallwayCharacter::BeginPlay()
@@ -194,7 +194,7 @@ void ATheHallwayCharacter::PlayWalkSound()
 }
 
 //percents: from 0 to 1
-float ATheHallwayCharacter::GetDistanceAlongSpline()
+float ATheHallwayCharacter::GetDistanceAlongSpline(TSoftObjectPtr<ASplineActor> SplineActor)
 {
 	if (!SplineActor) return -1;
 
@@ -207,6 +207,5 @@ float ATheHallwayCharacter::GetDistanceAlongSpline()
 
 
 	float PercentageAlongSpline = DistanceAlongSpline / SplineLength;
-	UE_LOG(LogTemp, Warning, TEXT("%f"), PercentageAlongSpline);
 	return PercentageAlongSpline;
 }
