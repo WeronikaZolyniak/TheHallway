@@ -49,19 +49,13 @@ class ATheHallwayCharacter : public ACharacter
 	class UInputAction* LookAction;
 
 	UPROPERTY(EditDefaultsOnly)
-	float DistanceBetweenFootstepSoundsInCm;
+	float DistanceBetweenFootstepSoundsInCm = 100;
+
 	float DistanceSinceFootstepSound = 0;
-
-	FTimerHandle WalkSoundTimerHandle;
-
-	bool IsMoving = false;
 	bool StepSoundFinished = false;
 
 	UPROPERTY(EditAnywhere)
 	USceneComponent* StepSoundLinetraceStart;
-
-	//UPROPERTY(EditAnywhere)
-	//TSoftObjectPtr<ASplineActor> SplineActor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UFootstepSettings> FootstepSettings;
@@ -79,16 +73,10 @@ protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
-	void StopMoving(const FInputActionValue& Value);
-
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
 	void PlayWalkSound();
-
-public:
-
-	float GetDistanceAlongSpline(TSoftObjectPtr<ASplineActor> SplineActor);
 
 protected:
 	// APawn interface

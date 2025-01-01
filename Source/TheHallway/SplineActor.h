@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SplineComponent.h"
+#include "Components/AudioComponent.h"
 #include "SplineActor.generated.h"
 
 UCLASS()
@@ -26,4 +27,12 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	USplineComponent* Spline;
+
+	float GetPlayersDistanceAlongSpline();
+
+	UPROPERTY(EditAnywhere)
+	UAudioComponent* Sound;
+
+	UPROPERTY(EditAnywhere)
+	FName NameOfParameterToModify;
 };

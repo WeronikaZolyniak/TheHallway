@@ -82,7 +82,6 @@ void ATheHallwayCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATheHallwayCharacter::Move);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ATheHallwayCharacter::StopMoving);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATheHallwayCharacter::Look);
@@ -104,26 +103,17 @@ void ATheHallwayCharacter::Move(const FInputActionValue& Value)
 		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
-		IsMoving = true;
 
 		float LocationDifference = MovementVector.Length();
-
-		if (DistanceSinceFootstepSound + LocationDifference >= DistanceBetweenFootstepSoundsInCm)
+		DistanceSinceFootstepSound += LocationDifference;
+		if (DistanceSinceFootstepSound >= DistanceBetweenFootstepSoundsInCm)
 		{
-			DistanceSinceFootstepSound = 0;
+			DistanceSinceFootstepSound -= DistanceBetweenFootstepSoundsInCm;
 			PlayWalkSound();
 		}
-		else
-		{
-			DistanceSinceFootstepSound += LocationDifference;
-		}
+
 		
 	}
-}
-
-void ATheHallwayCharacter::StopMoving(const FInputActionValue& Value)
-{
-	IsMoving = false;
 }
 
 void ATheHallwayCharacter::Look(const FInputActionValue& Value)
@@ -141,9 +131,7 @@ void ATheHallwayCharacter::Look(const FInputActionValue& Value)
 
 void ATheHallwayCharacter::PlayWalkSound()
 {
-	UE_LOG(LogTemp, Error, TEXT("Sound"));
-	//check if moving
-	if (!IsMoving || !FootstepSettings)
+	if (!FootstepSettings)
 	{
 		StepSoundFinished = true;
 		return;
@@ -159,9 +147,6 @@ void ATheHallwayCharacter::PlayWalkSound()
 		StepSoundLinetraceStart->GetComponentLocation() + FVector(0,0,-100),
 		ECollisionChannel::ECC_Visibility, Params);
 
-
-	//DrawDebugLine(GetWorld(), StepSoundLinetraceStart->GetComponentLocation(), StepSoundLinetraceStart->GetComponentLocation() + FVector(0, 0, -100), FColor::Green, true);
-
 	if (FloorDetected)
 	{
 		UPhysicalMaterial* HitMaterialPointer = Hit.PhysMaterial.Get();
@@ -173,21 +158,4 @@ void ATheHallwayCharacter::PlayWalkSound()
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), *FootstepSound, StepSoundLinetraceStart->GetComponentLocation());
 		}
 	}
-}
-
-//percents: from 0 to 1
-float ATheHallwayCharacter::GetDistanceAlongSpline(TSoftObjectPtr<ASplineActor> SplineActor)
-{
-	if (!SplineActor) return -1;
-
-	USplineComponent* Spline = SplineActor->Spline;
-
-	float SplineLength = Spline->GetSplineLength();
-
-	float ClosestInputKey = Spline->FindInputKeyClosestToWorldLocation(GetActorLocation());
-	float DistanceAlongSpline = Spline->GetDistanceAlongSplineAtSplineInputKey(ClosestInputKey);
-
-
-	float PercentageAlongSpline = DistanceAlongSpline / SplineLength;
-	return PercentageAlongSpline;
 }
